@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -24,13 +24,24 @@ function TrueFalseEditor({ onSave, onCancel, question }: TrueFalseEditorProps) {
     isTrue: question?.isTrue || false,
   });
 
-  // const handleSave = () => {
-  //   const questionData = {
-  //     ...questionState,
-  //     id: questionState.id || `q-${Date.now()}`,
-  //   };
-  //   onSave(questionData);
-  // };
+  useEffect(() => {
+    setQuestionState({
+      id: question?.id || "",
+      type: "fill-in-the-blanks",
+      title: question?.title || "",
+      points: question?.points || 5,
+      questionText: question?.questionText || "",
+      isTrue: question?.isTrue || false,
+    });
+  }, [question]);
+
+  const handleSave = () => {
+    const questionData = {
+      ...questionState,
+      id: questionState.id || `q-${Date.now()}`,
+    };
+    onSave(questionData);
+  };
 
   return (
     <div className="my-4">
@@ -113,7 +124,7 @@ function TrueFalseEditor({ onSave, onCancel, question }: TrueFalseEditorProps) {
 
       {/* Action Buttons */}
       <div className="mt-3 d-flex justify-content-end">
-        <button className="btn btn-success" onClick={onSave}>
+        <button className="btn btn-success" onClick={handleSave}>
           Save
         </button>
         <button className="btn btn-danger ms-2" onClick={onCancel}>

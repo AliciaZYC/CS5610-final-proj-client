@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { FaTrash } from "react-icons/fa";
@@ -35,6 +35,17 @@ function FillInBlanksEditor({
     questionText: question?.questionText || "",
     correctAnswers: question?.correctAnswers || [{ text: "" }],
   });
+
+  useEffect(() => {
+    setQuestionState({
+      id: question?.id || "",
+      type: "fill-in-the-blanks",
+      title: question?.title || "",
+      points: question?.points || 5,
+      questionText: question?.questionText || "",
+      correctAnswers: question?.correctAnswers || [{ text: "" }],
+    });
+  }, [question]);
 
   const handleAnswerChange = (index: number, value: string) => {
     let newAnswers = questionState.correctAnswers.map((answer, i) => {

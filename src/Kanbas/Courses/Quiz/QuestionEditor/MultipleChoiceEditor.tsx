@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { FaTrash } from "react-icons/fa";
@@ -32,6 +32,18 @@ function MultipleChoiceEditor({ onSave, onCancel, question }: Props) {
     questionText: question?.questionText || "",
     choices: question?.choices || [{ text: "", isCorrect: true }],
   });
+
+  // Ensure that when question prop changes (e.g., when editing a different question), the state updates accordingly
+  useEffect(() => {
+    setQuestionState({
+      id: question?.id || "",
+      type: "multiple-choice",
+      title: question?.title || "",
+      points: question?.points || 5,
+      questionText: question?.questionText || "",
+      choices: question?.choices || [{ text: "", isCorrect: true }],
+    });
+  }, [question]);
 
   const handleAddChoice = () => {
     setQuestionState({
