@@ -170,10 +170,19 @@ export default function Quizzes() {
                   <h6>
                     <p className="wd-fg-color-red">
                       <span className="wd-fg-color-black">
-                        <strong>Not available until</strong>{" "}
-                        {quiz.availableDate}| <b>Due</b>{" "}
-                        {quiz.dueDate || "No Due Date"} | {quiz.points || 0} pts
-                        | {quiz.questions?.length} Questions
+                        {new Date() < new Date(quiz.availableDate) ? (
+                          <>
+                            <strong>Not available until</strong>{" "}
+                            {new Date(quiz.availableDate).toLocaleDateString()}
+                          </>
+                        ) : new Date() > new Date(quiz.untilDate) ? (
+                          <>Closed</>
+                        ) : (
+                          <>Available</>
+                        )}{" "}
+                        | <b>Due</b> {quiz.dueDate || "No Due Date"} |{" "}
+                        {quiz.points || 0} pts | {quiz.questions?.length}{" "}
+                        Questions
                       </span>
                     </p>
                   </h6>

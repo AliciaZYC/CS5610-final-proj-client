@@ -52,22 +52,28 @@ export default function QuestionEditor() {
   const [questionType, setQuestionType] = useState("multipleChoice");
 
   // const handleSave = (questionData: any) => {
-  //   // Placeholder for save logic
-  //   console.log("Saving data:", questionData);
-  //   // Navigate back to quiz details
-  //   navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+  //   setQuizDetails((prevDetails) => {
+  //     const questions = questionData.id
+  //       ? prevDetails.questions.map((q: any) =>
+  //           q.id === questionData.id ? questionData : q
+  //         )
+  //       : [...prevDetails.questions, questionData];
+  //     return { ...prevDetails, questions };
+  //   });
+  //   // Optionally navigate back or dispatch an update
+  //   // navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
   // };
-  const handleSave = (questionData: any) => {
-    setQuizDetails((prevDetails) => {
-      const questions = questionData.id
-        ? prevDetails.questions.map((q: any) =>
-            q.id === questionData.id ? questionData : q
-          )
-        : [...prevDetails.questions, questionData];
-      return { ...prevDetails, questions };
-    });
-    // Optionally navigate back or dispatch an update
-    // navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+  const handleSave = async (questionData: any) => {
+    console.log(questionData);
+    const updatedQuestions = questionData.id
+      ? quizDetails.questions.map((q: any) =>
+          q.id === questionData.id ? questionData : q
+        )
+      : [...quizDetails.questions, questionData];
+    const updatedQuiz = { ...quizDetails, questions: updatedQuestions };
+    const response = await updateQuizDetails(quizDetails._id, updatedQuiz);
+    setQuizDetails(response); // Update state with server response
+    dispatch(reduxSetQuizDetails(response)); // Update Redux store
   };
 
   const handleCancel = () => {
@@ -91,9 +97,11 @@ export default function QuestionEditor() {
     }
   };
 
-  useEffect(() => {
-    console.log("Current questions in quizDetails:", quizDetails.questions);
-  }, [quizDetails.questions]);
+  // useEffect(() => {
+  //   console.log("Current questions in quizDetails:", quizDetails.questions);
+  // }, [quizDetails.questions]);
+
+  const [isCreatingQuestion, setIsCreatingQuestion] = useState(false);
 
   return (
     <div>
@@ -132,15 +140,28 @@ export default function QuestionEditor() {
       })}
 
       {/* Option to add a new question */}
-      <select
-        value={questionType}
-        onChange={(e) => setQuestionType(e.target.value)}
-      >
-        <option value="multipleChoice">Multiple Choice</option>
-        <option value="trueFalse">True/False</option>
-        <option value="fillInBlanks">Fill in the Blanks</option>
-      </select>
-      {renderEditor()}
+      {!isCreatingQuestion ? (
+        <div className=" d-flex justify-content-center align-items-center mb-4">
+          <button
+            className="btn btn-secondary"
+            onClick={() => setIsCreatingQuestion(true)}
+          >
+            + New Question
+          </button>
+        </div>
+      ) : (
+        <div>
+          <select
+            value={questionType}
+            onChange={(e) => setQuestionType(e.target.value)}
+          >
+            <option value="multipleChoice">Multiple Choice</option>
+            <option value="trueFalse">True/False</option>
+            <option value="fillInBlanks">Fill in the Blanks</option>
+          </select>
+          {renderEditor()}
+        </div>
+      )}
     </div>
   );
 }

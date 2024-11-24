@@ -269,7 +269,7 @@ function QuizEditor() {
                   <input
                     type="datetime-local"
                     className="form-control"
-                    name="availableFrom"
+                    name="availableDate"
                     value={quizDetails.availableDate}
                     onChange={handleChange}
                   />
@@ -286,6 +286,10 @@ function QuizEditor() {
                 </div>
               </div>
             </div>
+            <div className="d-flex justify-content-end my-4">
+              <button className="btn btn-success me-2">Save</button>
+              <button className="btn btn-danger">Cancel</button>
+            </div>
           </div>
         </>
       )}
@@ -295,12 +299,12 @@ function QuizEditor() {
           <QuestionEditor />
         </div>
       )}
-      <div className="float-end">
-        <button onClick={handleCancel} className="btn btn-secondary">
-          Cancel
-        </button>
-        <button onClick={handleSave} className="btn btn-danger ms-2">
+      <div className="d-flex justify-content-center">
+        <button onClick={handleSave} className="btn btn-danger">
           {qid ? "Update" : "Create"} & Save
+        </button>
+        <button onClick={handleCancel} className="btn btn-secondary  ms-2">
+          Cancel
         </button>
       </div>
     </div>
