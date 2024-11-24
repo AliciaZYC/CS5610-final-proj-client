@@ -19,18 +19,18 @@ function TrueFalseEditor({ onSave, onCancel, question }: TrueFalseEditorProps) {
     id: question?.id || "",
     type: "true-false",
     title: question?.title || "",
-    points: question?.points || 1,
+    points: question?.points || 5,
     questionText: question?.questionText || "",
     isTrue: question?.isTrue || false,
   });
 
-  const handleSave = () => {
-    const questionData = {
-      ...questionState,
-      id: questionState.id || `q-${Date.now()}`,
-    };
-    onSave(questionData);
-  };
+  // const handleSave = () => {
+  //   const questionData = {
+  //     ...questionState,
+  //     id: questionState.id || `q-${Date.now()}`,
+  //   };
+  //   onSave(questionData);
+  // };
 
   return (
     <div className="my-4">
@@ -113,7 +113,7 @@ function TrueFalseEditor({ onSave, onCancel, question }: TrueFalseEditorProps) {
 
       {/* Action Buttons */}
       <div className="mt-3 d-flex justify-content-end">
-        <button className="btn btn-success" onClick={handleSave}>
+        <button className="btn btn-success" onClick={onSave}>
           Save
         </button>
         <button className="btn btn-danger ms-2" onClick={onCancel}>

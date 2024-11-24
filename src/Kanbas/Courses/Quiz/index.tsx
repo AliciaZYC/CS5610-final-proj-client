@@ -3,7 +3,7 @@ import { FaPlus } from "react-icons/fa";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { setQuizzes, deleteQuiz as reduxDeleteQuiz } from "./reducer";
+import { setQuizzes, deleteQuiz } from "./reducer";
 import { MdArrowDropDown } from "react-icons/md";
 import { IoRocketOutline } from "react-icons/io5";
 import GreenCheckmark from "./GreenCheckmark";
@@ -15,21 +15,18 @@ export default function Quizzes() {
   const { cid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const quizzes = useSelector((state: any) =>
-    state.quizzes.quizzes.filter((q: any) => q.course === cid)
-  );
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const isFaculty = currentUser?.role === "FACULTY";
 
+  const fetchQuizzes = async () => {
+    const quizzes = await coursesClient.findQuizzesForCourse(cid as string);
+    dispatch(setQuizzes(quizzes));
+  };
   useEffect(() => {
-    const loadQuizzes = async () => {
-      if (cid) {
-        const quizzesData = await coursesClient.findQuizzesForCourse(cid);
-        dispatch(setQuizzes(quizzesData));
-      }
-    };
-    loadQuizzes();
-  }, [cid, dispatch]);
+    fetchQuizzes();
+  }, []);
 
   const handleAddQuiz = () => {
     navigate(`/Kanbas/Courses/${cid}/Quizzes/new`);
@@ -37,7 +34,7 @@ export default function Quizzes() {
 
   const handleDelete = async (quizId: string) => {
     await quizzesClient.deleteQuiz(quizId);
-    dispatch(reduxDeleteQuiz(quizId));
+    dispatch(deleteQuiz(quizId));
   };
 
   const handleDeleteAll = async () => {

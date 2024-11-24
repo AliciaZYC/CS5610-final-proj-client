@@ -32,11 +32,12 @@ export interface AnswerMap {
 }
 
 function QuizPreviewScreen() {
-  const { qid } = useParams<{ qid: string }>();
+  const { qid, cid } = useParams();
   // const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [answers, setAnswers] = useState<AnswerMap>({});
-  const quiz = useSelector(
-    (state: any) => state.quizzes.quizzes.find((q: any) => q._id === qid) || {}
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const quiz = quizzes.find(
+    (quiz: any) => quiz._id === qid && quiz.course === cid
   );
 
   const handleAnswerChange = (questionId: string, answer: any) => {

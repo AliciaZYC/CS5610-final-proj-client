@@ -7,22 +7,10 @@ export default function QuizDetails() {
   const { cid, qid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const quiz = useSelector((state: any) =>
-    qid ? state.quizzes.quizzes.find((q: any) => q._id === qid) : {}
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const quiz = quizzes.find(
+    (quiz: any) => quiz._id === qid && quiz.course === cid
   );
-
-  useEffect(() => {
-    if (cid && qid) {
-      quizzesClient
-        .fetchQuizDetails(cid, qid)
-        .then((details) => {
-          dispatch({ type: "SET_QUIZ_DETAILS", payload: details });
-        })
-        .catch((error) =>
-          console.error("Failed to fetch quiz details:", error)
-        );
-    }
-  }, [cid, qid, dispatch]);
 
   const handleEdit = () => {
     navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/${qid}`);

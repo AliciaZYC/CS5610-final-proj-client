@@ -3,52 +3,43 @@ import { useParams, useNavigate } from "react-router-dom";
 import MultipleChoiceEditor from "./QuestionEditor/MultipleChoiceEditor";
 import TrueFalseEditor from "./QuestionEditor/TrueFalseEditor";
 import FillInBlanksEditor from "./QuestionEditor/FillInBlanksEditor";
-import { fetchQuizDetails, updateQuizDetails } from "./client";
-import { setQuizDetails as reduxSetQuizDetails } from "./reducer";
+// import { fetchQuizDetails, updateQuizDetails } from "./client";
+// import { setQuizDetails as reduxSetQuizDetails } from "./reducer";
 import { useDispatch, useSelector } from "react-redux";
+import * as coursesClient from "../client";
+import * as quizzesClient from "./client";
+import { addQuiz, updateQuiz } from "./reducer";
 
 export default function QuestionEditor() {
   const { cid, qid } = useParams<{ cid: string; qid: string }>();
-  // const dispatch = useDispatch();
-  const quiz = useSelector(
-    (state: any) => state.quizzes.quizzes.find((q: any) => q._id === qid) || {}
-  );
-
-  const [quizDetails, setQuizDetails] = useState({
-    _id: qid || `quiz-${Date.now()}`,
-    title: quiz.title || "",
-    description: quiz.description || "",
-    quizType: quiz.quizType || "Graded Quiz",
-    assignmentGroup: quiz.assignmentGroup || "Quizzes",
-    shuffleAnswers: quiz.shuffleAnswers || false,
-    timeLimit: quiz.timeLimit || 20,
-    multipleAttempts: quiz.multipleAttempts || false,
-    showCorrectAnswers: quiz.showCorrectAnswers || "",
-    accessCode: quiz.accessCode || "",
-    oneQuestionAtATime: quiz.oneQuestionAtATime || true,
-    webcamRequired: quiz.webcamRequired || false,
-    lockQuestionsAfterAnswering: quiz.lockQuestionsAfterAnswering || false,
-    dueDate: quiz.dueDate || "",
-    availableDate: quiz.availableDate || "",
-    untilDate: quiz.untilDate || "",
-    questions: quiz.questions || [],
-  });
-
-  useEffect(() => {
-    if (cid && qid && !quiz._id) {
-      fetchQuizDetails(cid, qid!)
-        .then((details) => {
-          dispatch(reduxSetQuizDetails(details));
-          setQuizDetails(details);
-        })
-        .catch((error) =>
-          console.error("Failed to fetch quiz details:", error)
-        );
-    }
-  }, [cid, qid, quiz._id]);
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const existingQuiz = quizzes.find(
+    (quiz: any) => quiz._id === qid && quiz.course === cid
+  );
+  const [quiz, setQuiz] = useState(
+    existingQuiz || {
+      title: "",
+      description: "",
+      quizType: "Graded Quiz",
+      assignmentGroup: "Quizzes",
+      shuffleAnswers: false,
+      timeLimit: 20,
+      multipleAttempts: false,
+      showCorrectAnswers: "",
+      accessCode: "",
+      oneQuestionAtATime: true,
+      webcamRequired: false,
+      lockQuestionsAfterAnswering: false,
+      dueDate: "",
+      availableDate: "",
+      untilDate: "",
+      questions: [],
+      course: cid,
+    }
+  );
+
   const [questionType, setQuestionType] = useState("multipleChoice");
 
   // const handleSave = (questionData: any) => {
@@ -63,17 +54,26 @@ export default function QuestionEditor() {
   //   // Optionally navigate back or dispatch an update
   //   // navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
   // };
-  const handleSave = async (questionData: any) => {
-    console.log(questionData);
-    const updatedQuestions = questionData.id
-      ? quizDetails.questions.map((q: any) =>
-          q.id === questionData.id ? questionData : q
-        )
-      : [...quizDetails.questions, questionData];
-    const updatedQuiz = { ...quizDetails, questions: updatedQuestions };
-    const response = await updateQuizDetails(quizDetails._id, updatedQuiz);
-    setQuizDetails(response); // Update state with server response
-    dispatch(reduxSetQuizDetails(response)); // Update Redux store
+  const handleSave = () => {
+    if (existingQuiz) {
+      saveQuiz(quiz);
+      // navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+    } else {
+      createQuiz({ ...quiz, _id: new Date().getTime().toString() });
+    }
+    // navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+  };
+
+  const createQuiz = async (quiz: any) => {
+    const newQuiz = await coursesClient.createQuizForCourse(
+      cid as string,
+      quiz
+    );
+    dispatch(addQuiz(newQuiz));
+  };
+  const saveQuiz = async (quiz: any) => {
+    await quizzesClient.updateQuiz(quiz);
+    dispatch(updateQuiz(quiz));
   };
 
   const handleCancel = () => {
@@ -105,7 +105,7 @@ export default function QuestionEditor() {
 
   return (
     <div>
-      {quizDetails.questions.map((question: any, index: any) => {
+      {quiz.questions.map((question: any, index: any) => {
         switch (question.type) {
           case "multiple-choice":
             return (

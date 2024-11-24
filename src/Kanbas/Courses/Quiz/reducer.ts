@@ -1,34 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
-interface Question {
-  id: string;
-  title: string;
-  questionText: string;
-  type: string;
-  choices: string[];
-  isTrue: boolean;
-}
-interface Quiz {
-  _id: string;
-  title: string;
-  description: string;
-  quizType: string;
-  points: number;
-  assignmentGroup: string;
-  shuffleAnswers: boolean;
-  timeLimit: number;
-  multipleAttempts: boolean;
-  showCorrectAnswers: string;
-  accessCode: string;
-  oneQuestionAtATime: boolean;
-  webcamRequired: boolean;
-  lockQuestionsAfterAnswering: boolean;
-  dueDate: string;
-  availableDate: string;
-  untilDate: string;
-  questions: Question[];
-}
-const initialState: { quizzes: Quiz[] } = {
+const initialState = {
   quizzes: [],
 };
 
@@ -40,8 +12,9 @@ const quizzesSlice = createSlice({
       state.quizzes = action.payload;
     },
     addQuiz: (state, { payload: quiz }) => {
-      const newQuiz: Quiz = {
+      const newQuiz: any = {
         _id: new Date().getTime().toString(), // Generate unique ID
+        course: quiz.course,
         title: quiz.title,
         description: quiz.description || "",
         quizType: quiz.quizType || "multiple-choice",
@@ -60,8 +33,7 @@ const quizzesSlice = createSlice({
         untilDate: quiz.untilDate || "2024-05-20T23:59",
         questions: quiz.questions || [],
       };
-
-      state.quizzes = [...state.quizzes, newQuiz];
+      state.quizzes = [...state.quizzes, newQuiz] as any;
     },
     deleteQuiz: (state, { payload: quizzId }) => {
       state.quizzes = state.quizzes.filter((quiz: any) => quiz._id !== quizzId);
@@ -71,21 +43,10 @@ const quizzesSlice = createSlice({
         q._id === quiz._id ? quiz : q
       ) as any;
     },
-    setQuizDetails: (state, action: PayloadAction<Quiz>) => {
-      const index = state.quizzes.findIndex(
-        (quiz) => quiz._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.quizzes[index] = action.payload;
-      } else {
-        // Optionally handle the case where the quiz isn't found in the array
-        console.error("Quiz not found in the state");
-      }
-    },
   },
 });
 
 // Export the automatically generated action creators
-export const { setQuizzes, addQuiz, deleteQuiz, updateQuiz, setQuizDetails } =
+export const { setQuizzes, addQuiz, deleteQuiz, updateQuiz } =
   quizzesSlice.actions;
 export default quizzesSlice.reducer;

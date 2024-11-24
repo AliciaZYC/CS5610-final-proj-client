@@ -11,7 +11,7 @@ const store = configureStore({
     accountReducer,
     assignmentReducer,
     enrollmentReducer,
-    quizzes: quizzesReducer,
+    quizzesReducer,
   },
 });
 export default store;

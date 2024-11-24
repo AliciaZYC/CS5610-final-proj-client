@@ -1,68 +1,81 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchQuizDetails, updateQuizDetails } from "./client";
-import { setQuizDetails as reduxSetQuizDetails } from "./reducer";
+// import { fetchQuizDetails, updateQuizDetails } from "./client";
+// import { setQuizDetails as reduxSetQuizDetails } from "./reducer";
 import QuestionEditor from "./QuestionEditor";
 import ReactQuill from "react-quill";
+import * as coursesClient from "../client";
+import * as quizzesClient from "./client";
+import { addQuiz, updateQuiz } from "./reducer";
 
 function QuizEditor() {
   const { cid, qid } = useParams<{ cid: string; qid: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const quiz = useSelector(
-    (state: any) => state.quizzes.quizzes.find((q: any) => q._id === qid) || {}
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const existingQuiz = quizzes.find(
+    (quiz: any) => quiz._id === qid && quiz.course === cid
+  );
+  const [quiz, setQuiz] = useState(
+    existingQuiz || {
+      title: "",
+      description: "",
+      quizType: "Graded Quiz",
+      assignmentGroup: "Quizzes",
+      shuffleAnswers: false,
+      timeLimit: 20,
+      multipleAttempts: false,
+      showCorrectAnswers: "",
+      accessCode: "",
+      oneQuestionAtATime: true,
+      webcamRequired: false,
+      lockQuestionsAfterAnswering: false,
+      dueDate: "",
+      availableDate: "",
+      untilDate: "",
+      questions: [],
+      course: cid,
+    }
   );
 
-  const [quizDetails, setQuizDetails] = useState({
-    _id: qid || `quiz-${Date.now()}`,
-    title: quiz.title || "",
-    description: quiz.description || "",
-    quizType: quiz.quizType || "Graded Quiz",
-    assignmentGroup: quiz.assignmentGroup || "Quizzes",
-    shuffleAnswers: quiz.shuffleAnswers || false,
-    timeLimit: quiz.timeLimit || 20,
-    multipleAttempts: quiz.multipleAttempts || false,
-    showCorrectAnswers: quiz.showCorrectAnswers || "",
-    accessCode: quiz.accessCode || "",
-    oneQuestionAtATime: quiz.oneQuestionAtATime || true,
-    webcamRequired: quiz.webcamRequired || false,
-    lockQuestionsAfterAnswering: quiz.lockQuestionsAfterAnswering || false,
-    dueDate: quiz.dueDate || "",
-    availableDate: quiz.availableDate || "",
-    untilDate: quiz.untilDate || "",
-    questions: quiz.questions || [],
-  });
-
-  useEffect(() => {
-    if (cid && qid && !quiz._id) {
-      fetchQuizDetails(cid, qid!)
-        .then((details) => {
-          dispatch(reduxSetQuizDetails(details));
-          setQuizDetails(details);
-        })
-        .catch((error) =>
-          console.error("Failed to fetch quiz details:", error)
-        );
-    }
-  }, [cid, qid, dispatch, quiz._id]);
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setQuizDetails((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    if (qid) {
-      await updateQuizDetails(qid, quizDetails);
+  const handleSave = () => {
+    if (existingQuiz) {
+      saveQuiz(quiz);
       navigate(`/Kanbas/Courses/${cid}/Quizzes`);
     } else {
-      console.error("Quiz ID is missing!");
+      createQuiz({ ...quiz, _id: new Date().getTime().toString() });
     }
+    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+  };
+
+  const handleQuizSave = () => {
+    if (existingQuiz) {
+      saveQuiz(quiz);
+      navigate(`/Kanbas/Courses/${cid}/Quizzes/Details/${qid}`);
+    } else {
+      createQuiz({ ...quiz, _id: new Date().getTime().toString() });
+    }
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/Details/${qid}`);
+  };
+  // const handleDiscard = () => {
+  //   if (existingQuiz) {
+  //     navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/${qid}`);
+  //   } else {
+  //     navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/new`);
+  //   }
+  // };
+
+  const createQuiz = async (quiz: any) => {
+    const newQuiz = await coursesClient.createQuizForCourse(
+      cid as string,
+      quiz
+    );
+    dispatch(addQuiz(newQuiz));
+  };
+  const saveQuiz = async (quiz: any) => {
+    await quizzesClient.updateQuiz(quiz);
+    dispatch(updateQuiz(quiz));
   };
 
   const handleCancel = () => {
@@ -104,17 +117,17 @@ function QuizEditor() {
           <input
             type="text"
             name="title"
-            value={quizDetails.title}
-            onChange={handleChange}
+            value={quiz.title}
+            onChange={(e) => setQuiz({ ...quiz, title: e.target.value })}
             className="form-control mb-2"
             placeholder="Unnamed Quiz"
           />
           <ReactQuill
             theme="snow"
-            value={quizDetails.description}
+            value={quiz.description}
             onChange={(value) =>
-              setQuizDetails({
-                ...quizDetails,
+              setQuiz({
+                ...quiz,
                 description: value,
               })
             }
@@ -133,8 +146,8 @@ function QuizEditor() {
               <select
                 id="wd-group"
                 name="quizType"
-                value={quizDetails.quizType}
-                onChange={handleChange}
+                value={quiz.quizType}
+                onChange={(e) => setQuiz({ ...quiz, quizType: e.target.value })}
                 className="form-select"
               >
                 <option value="Graded Quiz" selected>
@@ -157,8 +170,10 @@ function QuizEditor() {
             <div className="col-sm-10">
               <select
                 name="assignmentGroup"
-                value={quizDetails.assignmentGroup}
-                onChange={handleChange}
+                value={quiz.assignmentGroup}
+                onChange={(e) =>
+                  setQuiz({ ...quiz, assignmentGroup: e.target.value })
+                }
                 className="form-select"
               >
                 <option value="Quizzes" selected>
@@ -176,10 +191,10 @@ function QuizEditor() {
                 type="checkbox"
                 name="shuffleAnswers"
                 style={{ marginRight: "10px" }}
-                checked={quizDetails.shuffleAnswers}
+                checked={quiz.shuffleAnswers}
                 onChange={(e) =>
-                  setQuizDetails({
-                    ...quizDetails,
+                  setQuiz({
+                    ...quiz,
                     shuffleAnswers: e.target.checked,
                   })
                 }
@@ -191,15 +206,16 @@ function QuizEditor() {
                   type="checkbox"
                   name="time limit"
                   style={{ marginRight: "10px" }}
-                  checked={Boolean(quizDetails.timeLimit)}
-                  onChange={handleChange}
+                  checked={Boolean(quiz.timeLimit)}
                 />
                 <label>Time Limit</label>
                 <input
                   type="number"
                   name="timeLimit"
-                  value={quizDetails.timeLimit}
-                  onChange={handleChange}
+                  value={quiz.timeLimit}
+                  onChange={(e) =>
+                    setQuiz({ ...quiz, timeLimit: e.target.value })
+                  }
                   className="form-control mx-2 my-2"
                   placeholder="Time Limit (minutes)"
                   style={{ width: "100px" }}
@@ -218,10 +234,10 @@ function QuizEditor() {
                   type="checkbox"
                   name="multipleAttempts"
                   style={{ marginRight: "10px" }}
-                  checked={quizDetails.multipleAttempts}
+                  checked={quiz.multipleAttempts}
                   onChange={(e) =>
-                    setQuizDetails({
-                      ...quizDetails,
+                    setQuiz({
+                      ...quiz,
                       multipleAttempts: e.target.checked,
                     })
                   }
@@ -259,8 +275,8 @@ function QuizEditor() {
                 type="datetime-local"
                 className="form-control"
                 name="dueDate"
-                value={quizDetails.dueDate}
-                onChange={handleChange}
+                value={quiz.dueDate}
+                onChange={(e) => setQuiz({ ...quiz, dueDate: e.target.value })}
               />
               <br />
               <div className="row">
@@ -270,8 +286,10 @@ function QuizEditor() {
                     type="datetime-local"
                     className="form-control"
                     name="availableDate"
-                    value={quizDetails.availableDate}
-                    onChange={handleChange}
+                    value={quiz.availableDate}
+                    onChange={(e) =>
+                      setQuiz({ ...quiz, availableDate: e.target.value })
+                    }
                   />
                 </div>
                 <div className="col-sm-6">
@@ -280,15 +298,21 @@ function QuizEditor() {
                     type="datetime-local"
                     className="form-control"
                     name="untilDate"
-                    value={quizDetails.untilDate}
-                    onChange={handleChange}
+                    value={quiz.untilDate}
+                    onChange={(e) =>
+                      setQuiz({ ...quiz, untilDate: e.target.value })
+                    }
                   />
                 </div>
               </div>
             </div>
             <div className="d-flex justify-content-end my-4">
-              <button className="btn btn-success me-2">Save</button>
-              <button className="btn btn-danger">Cancel</button>
+              <button className="btn btn-success" onClick={handleQuizSave}>
+                Save
+              </button>
+              {/* <button className="btn btn-danger" onClick={handleDiscard}>
+                Cancel
+              </button> */}
             </div>
           </div>
         </>
