@@ -51,34 +51,37 @@ export default function QuestionEditor() {
   const dispatch = useDispatch();
   const [questionType, setQuestionType] = useState("multipleChoice");
 
+  // const handleSave = (questionData: any) => {
+  //   // Placeholder for save logic
+  //   console.log("Saving data:", questionData);
+  //   // Navigate back to quiz details
+  //   navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+  // };
   const handleSave = (questionData: any) => {
-    // Placeholder for save logic
-    console.log("Saving data:", questionData);
-    // Navigate back to quiz details
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
+    setQuizDetails((prevDetails) => {
+      const questions = questionData.id
+        ? prevDetails.questions.map((q: any) =>
+            q.id === questionData.id ? questionData : q
+          )
+        : [...prevDetails.questions, questionData];
+      return { ...prevDetails, questions };
+    });
+    // Optionally navigate back or dispatch an update
+    // navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
   };
 
   const handleCancel = () => {
     navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
   };
 
-  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
-
   const renderEditor = () => {
-    const currentQuestion = quizDetails.questions[selectedQuestionIndex];
     switch (questionType) {
       case "multipleChoice":
         return (
           <MultipleChoiceEditor onSave={handleSave} onCancel={handleCancel} />
         );
       case "trueFalse":
-        return (
-          <TrueFalseEditor
-            onSave={handleSave}
-            onCancel={handleCancel}
-            question={currentQuestion}
-          />
-        );
+        return <TrueFalseEditor onSave={handleSave} onCancel={handleCancel} />;
       case "fillInBlanks":
         return (
           <FillInBlanksEditor onSave={handleSave} onCancel={handleCancel} />
@@ -87,12 +90,48 @@ export default function QuestionEditor() {
         return null;
     }
   };
+
   useEffect(() => {
     console.log("Current questions in quizDetails:", quizDetails.questions);
   }, [quizDetails.questions]);
 
   return (
     <div>
+      {quizDetails.questions.map((question: any, index: any) => {
+        switch (question.type) {
+          case "multiple-choice":
+            return (
+              <MultipleChoiceEditor
+                key={question.id}
+                question={question}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+            );
+          case "true-false":
+            return (
+              <TrueFalseEditor
+                key={question.id}
+                question={question}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+            );
+          case "fill-in-the-blanks":
+            return (
+              <FillInBlanksEditor
+                key={question.id}
+                question={question}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
+
+      {/* Option to add a new question */}
       <select
         value={questionType}
         onChange={(e) => setQuestionType(e.target.value)}
