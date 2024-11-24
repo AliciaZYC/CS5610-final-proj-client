@@ -25,7 +25,7 @@ function FillInBlanksQuestion({ question, answer, onChange }: QuestionProps) {
                 type="text"
                 value={answer || ""}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder="Type your answer here..."
+                placeholder={_.text}
                 style={styles.input}
               />
             </div>

@@ -24,7 +24,7 @@ function MultipleChoiceQuestion({ question, answer, onChange }: QuestionProps) {
                 type="radio"
                 name={`question-${question.id}`}
                 id={`choice-${index}`}
-                checked={answer === choice.text}
+                checked={choice.isCorrect}
                 onChange={() => onChange(choice.text)}
                 style={styles.radioInput}
               />

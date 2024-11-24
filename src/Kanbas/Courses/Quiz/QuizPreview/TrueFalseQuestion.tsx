@@ -24,7 +24,7 @@ function TrueFalseQuestion({ question, answer, onChange }: QuestionProps) {
               type="radio"
               id={`true-${question.id}`}
               name={`question-${question.id}`}
-              checked={answer === true}
+              checked={question.isTrue}
               onChange={() => onChange(true)}
               style={styles.radioInput}
             />
@@ -35,7 +35,7 @@ function TrueFalseQuestion({ question, answer, onChange }: QuestionProps) {
               type="radio"
               id={`false-${question.id}`}
               name={`question-${question.id}`}
-              checked={answer === false}
+              checked={!question.isTrue}
               onChange={() => onChange(false)}
               style={styles.radioInput}
             />
