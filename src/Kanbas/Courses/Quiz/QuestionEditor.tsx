@@ -1,82 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import MultipleChoiceEditor from "./QuestionEditor/MultipleChoiceEditor";
 import TrueFalseEditor from "./QuestionEditor/TrueFalseEditor";
 import FillInBlanksEditor from "./QuestionEditor/FillInBlanksEditor";
-// import { fetchQuizDetails, updateQuizDetails } from "./client";
-// import { setQuizDetails as reduxSetQuizDetails } from "./reducer";
-import { useDispatch, useSelector } from "react-redux";
-import * as coursesClient from "../client";
-import * as quizzesClient from "./client";
-import { addQuiz, updateQuiz } from "./reducer";
 import MultipleChoiceQuestion from "./QuizPreview/MultipleChoiceQuestion";
 import TrueFalseQuestion from "./QuizPreview/TrueFalseQuestion";
 import FillInBlanksQuestion from "./QuizPreview/FillInBlanksQuestion";
 
-export interface QuestionProps {
-  question: Question;
-  answer: any;
-  onChange: (answer: any) => void;
+interface QuestionEditorProps {
+  quiz: any;
+  setQuiz: (quiz: any) => void;
 }
 
-export interface Question {
-  id: string;
-  title: string;
-  questionText: string;
-  type: "multiple-choice" | "true-false" | "fill-in-blanks";
-  choices?: Array<{ text: string; isCorrect: boolean }>;
-  isTrue?: boolean;
-}
-
-export interface Quiz {
-  id: string;
-  title: string;
-  description: string;
-  questions: Question[];
-}
-
-export interface AnswerMap {
-  [key: string]: any;
-}
-
-export default function QuestionEditor() {
-  const { cid, qid } = useParams<{ cid: string; qid: string }>();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
-  const existingQuiz = quizzes.find(
-    (quiz: any) => quiz._id === qid && quiz.course === cid
-  );
-  const [quiz, setQuiz] = useState(
-    existingQuiz || {
-      title: "",
-      description: "",
-      quizType: "Graded Quiz",
-      assignmentGroup: "Quizzes",
-      shuffleAnswers: false,
-      timeLimit: 20,
-      multipleAttempts: false,
-      showCorrectAnswers: "",
-      accessCode: "",
-      oneQuestionAtATime: true,
-      webcamRequired: false,
-      lockQuestionsAfterAnswering: false,
-      dueDate: "",
-      availableDate: "",
-      untilDate: "",
-      questions: [],
-      course: cid,
-    }
-  );
-
+export default function QuestionEditor({ quiz, setQuiz }: QuestionEditorProps) {
   const [questionType, setQuestionType] = useState("multipleChoice");
   const [isCreatingQuestion, setIsCreatingQuestion] = useState(false);
   const [currentlyEditingQuestion, setCurrentlyEditingQuestion] =
     useState<any>(null);
 
-  // Modify handleSave to accept questionData and update quiz's questions array
+  // Handle saving a question
   const handleSave = (questionData: any) => {
-    // Update the quiz's questions array
     const updatedQuestions = quiz.questions ? [...quiz.questions] : [];
 
     const existingQuestionIndex = updatedQuestions.findIndex(
@@ -95,37 +37,15 @@ export default function QuestionEditor() {
     const updatedQuiz = { ...quiz, questions: updatedQuestions };
     setQuiz(updatedQuiz);
 
-    // Save the updated quiz to backend
-    if (existingQuiz) {
-      saveQuiz(updatedQuiz);
-    } else {
-      createQuiz({ ...updatedQuiz, _id: new Date().getTime().toString() });
-    }
-
     // Reset the editing state
     setCurrentlyEditingQuestion(null);
     setIsCreatingQuestion(false);
-  };
-
-  const createQuiz = async (quiz: any) => {
-    const newQuiz = await coursesClient.createQuizForCourse(
-      cid as string,
-      quiz
-    );
-    dispatch(addQuiz(newQuiz));
-  };
-
-  const saveQuiz = async (quiz: any) => {
-    await quizzesClient.updateQuiz(quiz);
-    dispatch(updateQuiz(quiz));
   };
 
   const handleCancel = () => {
     // Reset the editing state
     setCurrentlyEditingQuestion(null);
     setIsCreatingQuestion(false);
-    // Optionally navigate back if needed
-    // navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
   };
 
   const renderEditor = () => {
@@ -177,48 +97,60 @@ export default function QuestionEditor() {
     );
     const updatedQuiz = { ...quiz, questions: updatedQuestions };
     setQuiz(updatedQuiz);
-    // Save the updated quiz to backend
-    if (existingQuiz) {
-      saveQuiz(updatedQuiz);
-    }
   };
 
-  const [answers, setAnswers] = useState<AnswerMap>({});
-  const handleAnswerChange = (questionId: string, answer: any) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-  };
   return (
     <div>
       {!isCreatingQuestion ? (
         <div>
-          {/* List existing questions */}
-          {quiz.questions.map((question: any, index: any) => (
-            <div key={question.id || index}>
-              <div>
-                <h5>{question.title || `Question ${index + 1}`}</h5>
-                {/* Display question text */}
-                <div
-                  dangerouslySetInnerHTML={{ __html: question.questionText }}
-                />
-                <button
-                  onClick={() => editQuestion(question)}
-                  className="btn btn-warning me-2"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteQuestion(question)}
-                  className="btn btn-danger"
-                >
-                  Delete
-                </button>
-              </div>
-              <hr />
-            </div>
-          ))}
+          {/* List existing questions using preview components */}
+          {quiz.questions.map((question: any) => {
+            let QuestionComponent = null;
+
+            switch (question.type) {
+              case "multiple-choice":
+                QuestionComponent = MultipleChoiceQuestion;
+                break;
+              case "true-false":
+                QuestionComponent = TrueFalseQuestion;
+                break;
+              case "fill-in-blanks":
+                QuestionComponent = FillInBlanksQuestion;
+                break;
+              default:
+                return null;
+            }
+
+            return (
+              QuestionComponent && (
+                <div key={question.id}>
+                  {/* Use preview components to display question */}
+                  <QuestionComponent
+                    question={question}
+                    answer={null} // or any default value
+                    onChange={() => {}} // No action needed
+                  />
+                  {/* Edit and Delete Buttons */}
+                  <button
+                    onClick={() => editQuestion(question)}
+                    className="btn btn-warning me-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteQuestion(question)}
+                    className="btn btn-danger"
+                  >
+                    Delete
+                  </button>
+                  <hr />
+                </div>
+              )
+            );
+          })}
 
           {/* Option to add a new question */}
-          <div className=" d-flex justify-content-center align-items-center mb-4">
+          <div className="d-flex justify-content-center align-items-center mb-4">
             <button
               className="btn btn-secondary"
               onClick={() => {

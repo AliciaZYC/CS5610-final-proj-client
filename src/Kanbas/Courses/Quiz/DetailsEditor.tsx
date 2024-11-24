@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-// import { fetchQuizDetails, updateQuizDetails } from "./client";
-// import { setQuizDetails as reduxSetQuizDetails } from "./reducer";
 import QuestionEditor from "./QuestionEditor";
 import ReactQuill from "react-quill";
 import * as coursesClient from "../client";
@@ -14,6 +12,8 @@ function QuizEditor() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+
+  // Find the existing quiz or initialize a new one
   const existingQuiz = quizzes.find(
     (quiz: any) => quiz._id === qid && quiz.course === cid
   );
@@ -39,33 +39,17 @@ function QuizEditor() {
     }
   );
 
+  // Handle saving the quiz
   const handleSave = () => {
     if (existingQuiz) {
       saveQuiz(quiz);
-      navigate(`/Kanbas/Courses/${cid}/Quizzes`);
     } else {
       createQuiz({ ...quiz, _id: new Date().getTime().toString() });
     }
     navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
-  const handleQuizSave = () => {
-    if (existingQuiz) {
-      saveQuiz(quiz);
-      navigate(`/Kanbas/Courses/${cid}/Quizzes/Details/${qid}`);
-    } else {
-      createQuiz({ ...quiz, _id: new Date().getTime().toString() });
-    }
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/Details/${qid}`);
-  };
-  // const handleDiscard = () => {
-  //   if (existingQuiz) {
-  //     navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/${qid}`);
-  //   } else {
-  //     navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/new`);
-  //   }
-  // };
-
+  // Create a new quiz
   const createQuiz = async (quiz: any) => {
     const newQuiz = await coursesClient.createQuizForCourse(
       cid as string,
@@ -73,6 +57,8 @@ function QuizEditor() {
     );
     dispatch(addQuiz(newQuiz));
   };
+
+  // Save (update) an existing quiz
   const saveQuiz = async (quiz: any) => {
     await quizzesClient.updateQuiz(quiz);
     dispatch(updateQuiz(quiz));
@@ -114,6 +100,7 @@ function QuizEditor() {
       <br />
       {activeTab === "detail" && (
         <>
+          {/* Quiz Title Input */}
           <input
             type="text"
             name="title"
@@ -122,6 +109,7 @@ function QuizEditor() {
             className="form-control mb-2"
             placeholder="Unnamed Quiz"
           />
+          {/* Quiz Description Input */}
           <ReactQuill
             theme="snow"
             value={quiz.description}
@@ -306,28 +294,29 @@ function QuizEditor() {
                 </div>
               </div>
             </div>
-            <div className="d-flex justify-content-end my-4">
+            {/* <div className="d-flex justify-content-end my-4">
               <button className="btn btn-success" onClick={handleQuizSave}>
                 Save
               </button>
-              {/* <button className="btn btn-danger" onClick={handleDiscard}>
+              <button className="btn btn-danger" onClick={handleDiscard}>
                 Cancel
-              </button> */}
-            </div>
+              </button>
+            </div> */}
           </div>
         </>
       )}
       {activeTab === "question" && (
         <div>
-          <p>Questions editor will be implemented here.</p>
-          <QuestionEditor />
+          {/* Pass quiz and setQuiz as props to QuestionEditor */}
+          <QuestionEditor quiz={quiz} setQuiz={setQuiz} />
         </div>
       )}
+      {/* Save and Cancel Buttons */}
       <div className="d-flex justify-content-center">
         <button onClick={handleSave} className="btn btn-danger">
           {qid ? "Update" : "Create"} & Save
         </button>
-        <button onClick={handleCancel} className="btn btn-secondary  ms-2">
+        <button onClick={handleCancel} className="btn btn-secondary ms-2">
           Cancel
         </button>
       </div>
