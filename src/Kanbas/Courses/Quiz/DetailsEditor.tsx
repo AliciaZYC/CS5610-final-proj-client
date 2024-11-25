@@ -36,6 +36,7 @@ function QuizEditor() {
       untilDate: "",
       questions: [],
       course: cid,
+      published: false,
     }
   );
 

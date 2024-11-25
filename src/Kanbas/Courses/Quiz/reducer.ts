@@ -15,6 +15,7 @@ const quizzesSlice = createSlice({
       const newQuiz: any = {
         _id: new Date().getTime().toString(), // Generate unique ID
         course: quiz.course,
+        published: quiz.published || false,
         title: quiz.title,
         description: quiz.description || "",
         quizType: quiz.quizType || "multiple-choice",

@@ -3,7 +3,7 @@ import { FaPlus } from "react-icons/fa";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { setQuizzes, deleteQuiz } from "./reducer";
+import { setQuizzes, deleteQuiz, updateQuiz } from "./reducer";
 import { MdArrowDropDown } from "react-icons/md";
 import { IoRocketOutline } from "react-icons/io5";
 import GreenCheckmark from "./GreenCheckmark";
@@ -47,31 +47,36 @@ export default function Quizzes() {
 
   const handlePublishAll = async (publish: boolean) => {
     if (cid) {
-      if (publish) {
-        await quizzesClient.publishAllQuizzes(cid);
-      } else {
-        await quizzesClient.unpublishAllQuizzes(cid);
+      const updatedQuizzes = quizzes.map((quiz: any) => ({
+        ...quiz,
+        published: publish,
+      }));
+      for (const quiz of updatedQuizzes) {
+        await quizzesClient.updateQuiz(quiz);
+        dispatch(updateQuiz(quiz));
       }
-      const quizzesData = await coursesClient.findQuizzesForCourse(cid);
-      dispatch(setQuizzes(quizzesData));
     }
+    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
   const handleEdit = (quizId: string) => {
     navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/${quizId}`);
   };
+
   const togglePublishStatus = async (quizId: string, isPublished: boolean) => {
     if (!cid) {
       console.error("Course ID is undefined");
       return;
     }
-    if (isPublished) {
-      await quizzesClient.unpublishQuiz(quizId);
-    } else {
-      await quizzesClient.publishQuiz(quizId);
+    const quizToUpdate = quizzes.find((quiz: any) => quiz._id === quizId);
+    if (!quizToUpdate) {
+      console.error("Quiz not found");
+      return;
     }
-    const quizzesData = await coursesClient.findQuizzesForCourse(cid);
-    dispatch(setQuizzes(quizzesData));
+    const updatedQuiz = { ...quizToUpdate, published: !isPublished };
+    await quizzesClient.updateQuiz(updatedQuiz);
+    dispatch(updateQuiz(updatedQuiz));
+    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
   return (
@@ -109,31 +114,28 @@ export default function Quizzes() {
             </button>
             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <li>
-                <a
+                <button
                   className="dropdown-item"
-                  href="#"
                   onClick={() => handleDeleteAll()}
                 >
                   Delete All Quizzes
-                </a>
+                </button>
               </li>
               <li>
-                <a
+                <button
                   className="dropdown-item"
-                  href="#"
                   onClick={() => handlePublishAll(true)}
                 >
                   Publish All
-                </a>
+                </button>
               </li>
               <li>
-                <a
+                <button
                   className="dropdown-item"
-                  href="#"
                   onClick={() => handlePublishAll(false)}
                 >
                   Unpublish All
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -185,54 +187,53 @@ export default function Quizzes() {
                     </p>
                   </h6>
                 </div>
-                <div className="d-flex align-items-center">
-                  {quiz.published ? <GreenCheckmark /> : <RedBan />}
-                  <div className="dropdown">
-                    <button
-                      className="btn dropdown-toggle "
-                      type="button"
-                      id="quizMenuButton"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <IoEllipsisVertical style={{ fontSize: "20px" }} />
-                    </button>
-                    <ul
-                      className="dropdown-menu"
-                      aria-labelledby="quizMenuButton"
-                    >
-                      <li>
-                        <a
-                          className="dropdown-item"
-                          href="#"
-                          onClick={() => handleEdit(quiz._id)}
-                        >
-                          Edit
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          className="dropdown-item"
-                          href="#"
-                          onClick={() => handleDelete(quiz._id)}
-                        >
-                          Delete
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          className="dropdown-item"
-                          href="#"
-                          onClick={() =>
-                            togglePublishStatus(quiz._id, quiz.published)
-                          }
-                        >
-                          Publish/Unpublish
-                        </a>
-                      </li>
-                    </ul>
+                {isFaculty && (
+                  <div className="d-flex align-items-center">
+                    {quiz.published ? <GreenCheckmark /> : <RedBan />}
+                    <div className="dropdown">
+                      <button
+                        className="btn dropdown-toggle"
+                        type="button"
+                        id={`quizMenuButton-${quiz._id}`}
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        <IoEllipsisVertical style={{ fontSize: "20px" }} />
+                      </button>
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby={`quizMenuButton-${quiz._id}`}
+                      >
+                        <li>
+                          <button
+                            className="dropdown-item"
+                            onClick={() => handleEdit(quiz._id)}
+                          >
+                            Edit
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className="dropdown-item"
+                            onClick={() => handleDelete(quiz._id)}
+                          >
+                            Delete
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className="dropdown-item"
+                            onClick={() =>
+                              togglePublishStatus(quiz._id, quiz.published)
+                            }
+                          >
+                            Publish/Unpublish
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
+                )}
               </li>
             ))}
           </ul>
