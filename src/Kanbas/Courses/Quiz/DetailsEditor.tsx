@@ -26,6 +26,7 @@ function QuizEditor() {
       shuffleAnswers: false,
       timeLimit: 20,
       multipleAttempts: false,
+      attempts: 1,
       showCorrectAnswers: "",
       accessCode: "",
       oneQuestionAtATime: true,
@@ -39,7 +40,16 @@ function QuizEditor() {
       published: false,
     }
   );
-
+  function stripWrappingPTags(htmlContent: any) {
+    if (
+      htmlContent.startsWith("<p>") &&
+      htmlContent.endsWith("</p>") &&
+      htmlContent.indexOf("<p>", 1) === -1
+    ) {
+      return htmlContent.slice(3, -4);
+    }
+    return htmlContent;
+  }
   // Handle saving the quiz
   const handleSave = () => {
     const totalPoints = quiz.questions
@@ -48,8 +58,13 @@ function QuizEditor() {
           0
         )
       : 0;
+    const quizDescription = stripWrappingPTags(quiz.description);
     // Update the quiz object
-    const updatedQuiz = { ...quiz, points: totalPoints };
+    const updatedQuiz = {
+      ...quiz,
+      points: totalPoints,
+      description: quizDescription,
+    };
     if (existingQuiz) {
       saveQuiz(updatedQuiz);
     } else {
@@ -258,6 +273,19 @@ function QuizEditor() {
                   }
                 />
                 <label>Allow Multiple Attempts</label>
+                {quiz.multipleAttempts && (
+                  <input
+                    type="number"
+                    name="attempts"
+                    value={quiz.attempts}
+                    onChange={(e) =>
+                      setQuiz({ ...quiz, attempts: e.target.value })
+                    }
+                    className="mx-3"
+                    placeholder="Time Limit (minutes)"
+                    style={{ width: "40px" }}
+                  />
+                )}
               </div>
             </div>
           </div>

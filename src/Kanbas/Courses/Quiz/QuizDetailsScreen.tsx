@@ -50,7 +50,10 @@ export default function QuizDetails() {
             ["Assignment Group", quiz.assignmentGroup],
             ["Shuffle Answers", quiz.shuffleAnswers ? "Yes" : "No"],
             ["Time Limit", `${quiz.timeLimit} minutes`],
-            ["Multiple Attempts", quiz.multipleAttempts ? "Yes" : "No"],
+            [
+              "Multiple Attempts",
+              quiz.multipleAttempts ? `${quiz.attempts}` : "No",
+            ],
             ["How Many Attempts", quiz.HowManyAttempts],
             ["Show Correct Answers", quiz.showCorrectAnswers],
             ["Access Code", quiz.accessCode],

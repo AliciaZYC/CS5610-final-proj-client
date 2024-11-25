@@ -39,6 +39,8 @@ function QuizPreviewScreen() {
   const quiz = quizzes.find(
     (quiz: any) => quiz._id === qid && quiz.course === cid
   );
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const isFaculty = currentUser?.role === "FACULTY";
 
   const handleAnswerChange = (questionId: string, answer: any) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
@@ -57,11 +59,13 @@ function QuizPreviewScreen() {
       <h1>{quiz.title}</h1>
       <p>{quiz.description}</p>
       {/* Add the Edit Button */}
-      <div className="d-flex justify-content-end">
-        <button onClick={handleEdit} className="btn btn-warning mb-3">
-          Edit
-        </button>
-      </div>
+      {isFaculty && (
+        <div className="d-flex justify-content-end">
+          <button onClick={handleEdit} className="btn btn-warning mb-3">
+            Edit
+          </button>
+        </div>
+      )}
       {quiz.questions.map((question: any) => {
         let QuestionComponent = null;
 
