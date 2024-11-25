@@ -35,6 +35,7 @@ export default function Quizzes() {
   const handleDelete = async (quizId: string) => {
     await quizzesClient.deleteQuiz(quizId);
     dispatch(deleteQuiz(quizId));
+    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
   const handleDeleteAll = async () => {

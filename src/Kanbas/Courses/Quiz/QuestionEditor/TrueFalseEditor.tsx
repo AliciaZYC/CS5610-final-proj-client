@@ -27,7 +27,7 @@ function TrueFalseEditor({ onSave, onCancel, question }: TrueFalseEditorProps) {
   useEffect(() => {
     setQuestionState({
       id: question?.id || "",
-      type: "fill-in-the-blanks",
+      type: "true-false",
       title: question?.title || "",
       points: question?.points || 5,
       questionText: question?.questionText || "",
@@ -35,10 +35,23 @@ function TrueFalseEditor({ onSave, onCancel, question }: TrueFalseEditorProps) {
     });
   }, [question]);
 
+  function stripWrappingPTags(htmlContent: any) {
+    if (
+      htmlContent.startsWith("<p>") &&
+      htmlContent.endsWith("</p>") &&
+      htmlContent.indexOf("<p>", 1) === -1
+    ) {
+      return htmlContent.slice(3, -4);
+    }
+    return htmlContent;
+  }
+
+  // In your editor components, before saving
   const handleSave = () => {
     const questionData = {
       ...questionState,
       id: questionState.id || `q-${Date.now()}`,
+      questionText: stripWrappingPTags(questionState.questionText),
     };
     onSave(questionData);
   };

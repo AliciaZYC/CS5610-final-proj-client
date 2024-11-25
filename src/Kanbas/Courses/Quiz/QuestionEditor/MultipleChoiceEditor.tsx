@@ -72,10 +72,31 @@ function MultipleChoiceEditor({ onSave, onCancel, question }: Props) {
     setQuestionState({ ...questionState, choices: newChoices });
   };
 
+  // const handleSave = () => {
+  //   const questionData = {
+  //     ...questionState,
+  //     id: questionState.id || `q-${Date.now()}`,
+  //   };
+  //   onSave(questionData);
+  // };
+  // Utility function to strip wrapping <p> tags
+  function stripWrappingPTags(htmlContent: any) {
+    if (
+      htmlContent.startsWith("<p>") &&
+      htmlContent.endsWith("</p>") &&
+      htmlContent.indexOf("<p>", 1) === -1
+    ) {
+      return htmlContent.slice(3, -4);
+    }
+    return htmlContent;
+  }
+
+  // In your editor components, before saving
   const handleSave = () => {
     const questionData = {
       ...questionState,
       id: questionState.id || `q-${Date.now()}`,
+      questionText: stripWrappingPTags(questionState.questionText),
     };
     onSave(questionData);
   };

@@ -51,13 +51,3 @@ export const unpublishAllQuizzes = async (courseId: string) => {
   );
   return response.data;
 };
-
-export const fetchQuizDetails = async (courseId: string, quizId: string) => {
-  const response = await axios.get(`${QUIZZES_API}/${quizId}`);
-  return response.data;
-};
-
-export const updateQuizDetails = async (quizId: string, quiz: any) => {
-  const response = await axios.put(`${QUIZZES_API}/${quizId}`, quiz);
-  return response.data;
-};

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import QuestionEditor from "./QuestionEditor";
 import ReactQuill from "react-quill";
@@ -41,10 +41,18 @@ function QuizEditor() {
 
   // Handle saving the quiz
   const handleSave = () => {
+    const totalPoints = quiz.questions
+      ? quiz.questions.reduce(
+          (sum: number, question: any) => sum + (question.points || 0),
+          0
+        )
+      : 0;
+    // Update the quiz object
+    const updatedQuiz = { ...quiz, points: totalPoints };
     if (existingQuiz) {
-      saveQuiz(quiz);
+      saveQuiz(updatedQuiz);
     } else {
-      createQuiz({ ...quiz, _id: new Date().getTime().toString() });
+      createQuiz({ ...updatedQuiz, _id: new Date().getTime().toString() });
     }
     navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
@@ -67,8 +75,26 @@ function QuizEditor() {
   const handleCancel = () => {
     navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(
+    location.state?.activeTab || "detail"
+  );
 
-  const [activeTab, setActiveTab] = useState("detail");
+  const handleQuizSave = async () => {
+    let quizId;
+    if (existingQuiz) {
+      saveQuiz(quiz);
+      quizId = qid;
+    } else {
+      const newQuiz = await coursesClient.createQuizForCourse(
+        cid as string,
+        quiz
+      );
+      dispatch(addQuiz(newQuiz)); // Update Redux store
+      quizId = newQuiz._id;
+    }
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/Details/${quizId}`);
+  };
 
   return (
     <div
@@ -294,14 +320,14 @@ function QuizEditor() {
                 </div>
               </div>
             </div>
-            {/* <div className="d-flex justify-content-end my-4">
+            <div className="d-flex justify-content-end my-4">
               <button className="btn btn-success" onClick={handleQuizSave}>
                 Save
               </button>
-              <button className="btn btn-danger" onClick={handleDiscard}>
+              {/* <button className="btn btn-danger" onClick={handleDiscard}>
                 Cancel
-              </button>
-            </div> */}
+              </button> */}
+            </div>
           </div>
         </>
       )}

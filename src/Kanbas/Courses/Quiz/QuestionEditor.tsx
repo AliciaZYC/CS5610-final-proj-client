@@ -20,23 +20,17 @@ export default function QuestionEditor({ quiz, setQuiz }: QuestionEditorProps) {
   // Handle saving a question
   const handleSave = (questionData: any) => {
     const updatedQuestions = quiz.questions ? [...quiz.questions] : [];
-
     const existingQuestionIndex = updatedQuestions.findIndex(
       (q: any) => q.id === questionData.id
     );
-
     if (existingQuestionIndex >= 0) {
-      // Update existing question
       updatedQuestions[existingQuestionIndex] = questionData;
     } else {
-      // Add new question
       updatedQuestions.push(questionData);
     }
-
     // Update the quiz state with new questions
     const updatedQuiz = { ...quiz, questions: updatedQuestions };
     setQuiz(updatedQuiz);
-
     // Reset the editing state
     setCurrentlyEditingQuestion(null);
     setIsCreatingQuestion(false);

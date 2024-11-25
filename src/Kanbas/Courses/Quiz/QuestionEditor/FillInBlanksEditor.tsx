@@ -5,6 +5,7 @@ import { FaTrash } from "react-icons/fa";
 
 interface Answer {
   text: string;
+  isCorrect: boolean;
 }
 
 interface QuestionData {
@@ -13,7 +14,7 @@ interface QuestionData {
   title: string;
   points: number;
   questionText: string;
-  correctAnswers: Answer[];
+  choices: Answer[];
 }
 
 interface FillInBlanksEditorProps {
@@ -29,50 +30,61 @@ function FillInBlanksEditor({
 }: FillInBlanksEditorProps) {
   const [questionState, setQuestionState] = useState<QuestionData>({
     id: question?.id || "",
-    type: "fill-in-the-blanks",
+    type: "fill-in-blanks",
     title: question?.title || "",
     points: question?.points || 5,
     questionText: question?.questionText || "",
-    correctAnswers: question?.correctAnswers || [{ text: "" }],
+    choices: question?.choices || [{ text: "", isCorrect: true }],
   });
 
   useEffect(() => {
     setQuestionState({
       id: question?.id || "",
-      type: "fill-in-the-blanks",
+      type: "fill-in-blanks",
       title: question?.title || "",
       points: question?.points || 5,
       questionText: question?.questionText || "",
-      correctAnswers: question?.correctAnswers || [{ text: "" }],
+      choices: question?.choices || [{ text: "", isCorrect: true }],
     });
   }, [question]);
 
-  const handleAnswerChange = (index: number, value: string) => {
-    let newAnswers = questionState.correctAnswers.map((answer, i) => {
-      if (i === index) {
-        return { ...answer, text: value };
-      }
-      return answer;
-    });
-    setQuestionState({ ...questionState, correctAnswers: newAnswers });
-  };
-
-  const addAnswer = () => {
+  const handleAddAnswer = () => {
     setQuestionState({
       ...questionState,
-      correctAnswers: [...questionState.correctAnswers, { text: "" }],
+      choices: [...questionState.choices, { text: "", isCorrect: true }],
     });
   };
 
-  const removeAnswer = (index: number) => {
-    let newAnswers = questionState.correctAnswers.filter((_, i) => i !== index);
-    setQuestionState({ ...questionState, correctAnswers: newAnswers });
+  const handleAnswerChange = (index: number, text: string) => {
+    const newChoices = questionState.choices.map((choice, i) => {
+      if (i === index) return { ...choice, text };
+      return choice;
+    });
+    setQuestionState({ ...questionState, choices: newChoices });
   };
 
+  const handleRemoveAnswer = (index: number) => {
+    const newChoices = questionState.choices.filter((_, i) => i !== index);
+    setQuestionState({ ...questionState, choices: newChoices });
+  };
+
+  function stripWrappingPTags(htmlContent: any) {
+    if (
+      htmlContent.startsWith("<p>") &&
+      htmlContent.endsWith("</p>") &&
+      htmlContent.indexOf("<p>", 1) === -1
+    ) {
+      return htmlContent.slice(3, -4);
+    }
+    return htmlContent;
+  }
+
+  // In your editor components, before saving
   const handleSave = () => {
     const questionData = {
       ...questionState,
       id: questionState.id || `q-${Date.now()}`,
+      questionText: stripWrappingPTags(questionState.questionText),
     };
     onSave(questionData);
   };
@@ -128,7 +140,7 @@ function FillInBlanksEditor({
       />
 
       {/* Correct Answers */}
-      {questionState.correctAnswers.map((answer, index) => (
+      {questionState.choices.map((answer, index) => (
         <div
           key={index}
           style={{
@@ -151,7 +163,7 @@ function FillInBlanksEditor({
             style={{ flex: "1", marginRight: "10px" }}
           />
           <button
-            onClick={() => removeAnswer(index)}
+            onClick={() => handleRemoveAnswer(index)}
             className="btn btn-link text-danger"
           >
             <FaTrash />
@@ -167,7 +179,7 @@ function FillInBlanksEditor({
           marginTop: "20px",
         }}
       >
-        <button className="btn btn-secondary" onClick={addAnswer}>
+        <button className="btn btn-secondary" onClick={handleAddAnswer}>
           Add Answer
         </button>
         <div>

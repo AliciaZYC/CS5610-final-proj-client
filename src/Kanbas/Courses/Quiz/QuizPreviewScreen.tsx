@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import MultipleChoiceQuestion from "./QuizPreview/MultipleChoiceQuestion";
 import TrueFalseQuestion from "./QuizPreview/TrueFalseQuestion";
@@ -33,7 +33,7 @@ export interface AnswerMap {
 
 function QuizPreviewScreen() {
   const { qid, cid } = useParams();
-  // const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const navigate = useNavigate();
   const [answers, setAnswers] = useState<AnswerMap>({});
   const { quizzes } = useSelector((state: any) => state.quizzesReducer);
   const quiz = quizzes.find(
@@ -44,12 +44,24 @@ function QuizPreviewScreen() {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
+  const handleEdit = () => {
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/edit/${qid}`, {
+      state: { activeTab: "question" },
+    });
+  };
+
   if (!quiz) return <p>Loading...</p>;
 
   return (
     <div>
       <h1>{quiz.title}</h1>
       <p>{quiz.description}</p>
+      {/* Add the Edit Button */}
+      <div className="d-flex justify-content-end">
+        <button onClick={handleEdit} className="btn btn-warning mb-3">
+          Edit
+        </button>
+      </div>
       {quiz.questions.map((question: any) => {
         let QuestionComponent = null;
 
