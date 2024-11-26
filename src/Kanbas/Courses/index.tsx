@@ -12,6 +12,8 @@ import Quiz from "./Quiz";
 import QuizEditor from "./Quiz/DetailsEditor";
 import QuizDetails from "./Quiz/QuizDetailsScreen";
 import QuizPreviewScreen from "./Quiz/QuizPreviewScreen";
+import TakeQuizScreen from "./Quiz/TakeQuizScreen";
+import QuizResultScreen from "./Quiz/QuizResultScreen";
 
 export default function Courses({ courses }: { courses: any[] }) {
   const { cid } = useParams();
@@ -47,6 +49,8 @@ export default function Courses({ courses }: { courses: any[] }) {
             />
             <Route path="Quizzes/new" element={<QuizEditor />} />
             <Route path="Quizzes/Details/:qid" element={<QuizDetails />} />
+            <Route path="Quizzes/:qid/take" element={<TakeQuizScreen />} />
+            <Route path="Quizzes/:qid/result" element={<QuizResultScreen />} />
           </Routes>
         </div>
       </div>

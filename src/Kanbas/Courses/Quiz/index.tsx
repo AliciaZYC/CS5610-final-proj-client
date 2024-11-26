@@ -10,6 +10,8 @@ import GreenCheckmark from "./GreenCheckmark";
 import RedBan from "./RedBan";
 import * as coursesClient from "../client";
 import * as quizzesClient from "./client";
+import * as scoresClient from "./scoresClient";
+import { setScores } from "./scoresReducer";
 
 export default function Quizzes() {
   const { cid } = useParams();
@@ -19,6 +21,7 @@ export default function Quizzes() {
 
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const isFaculty = currentUser?.role === "FACULTY";
+  const isStudent = currentUser?.role === "STUDENT";
 
   const fetchQuizzes = async () => {
     const quizzes = await coursesClient.findQuizzesForCourse(cid as string);
@@ -78,6 +81,23 @@ export default function Quizzes() {
     dispatch(updateQuiz(updatedQuiz));
     navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
+
+  const filteredQuizzes = isStudent
+    ? quizzes.filter((quiz: any) => quiz.published)
+    : quizzes;
+
+  const { scores } = useSelector((state: any) => state.scoresReducer);
+  useEffect(() => {
+    fetchQuizzes();
+    if (isStudent) {
+      scoresClient.fetchAllScores().then((allScores) => {
+        const studentScores = allScores.filter(
+          (score: any) => score.student === currentUser._id
+        );
+        dispatch(setScores(studentScores));
+      });
+    }
+  }, [isStudent, currentUser._id]);
 
   return (
     <div id="wd-quizzes">
@@ -150,92 +170,103 @@ export default function Quizzes() {
             Assignment Quizzes
           </div>
           <ul className="wd-lessons list-group rounded-0 wd-padded-left wd-bg-color-green">
-            {quizzes.map((quiz: any) => (
-              <li
-                key={quiz._id}
-                className="wd-lesson list-group-item d-flex align-items-center p-3"
-              >
-                <div className="icon-container me-2">
-                  <IoRocketOutline className="text-success fs-3" />
-                </div>
-                <div className="quiz-details flex-grow-1">
-                  <strong>
-                    <Link
-                      to={`/Kanbas/Courses/${cid}/Quizzes/Details/${quiz._id}`}
-                      className="wd-_id"
-                    >
-                      {quiz.title}
-                    </Link>
-                  </strong>
-                  <h6>
-                    <p className="wd-fg-color-red">
-                      <span className="wd-fg-color-black">
-                        {new Date() < new Date(quiz.availableDate) ? (
-                          <>
-                            <strong>Not available until</strong>{" "}
-                            {new Date(quiz.availableDate).toLocaleDateString()}
-                          </>
-                        ) : new Date() > new Date(quiz.untilDate) ? (
-                          <>Closed</>
-                        ) : (
-                          <>Available</>
-                        )}{" "}
-                        | <b>Due</b> {quiz.dueDate || "No Due Date"} |{" "}
-                        {quiz.points || 0} pts | {quiz.questions?.length}{" "}
-                        Questions
-                      </span>
-                    </p>
-                  </h6>
-                </div>
-                {isFaculty && (
-                  <div className="d-flex align-items-center">
-                    {quiz.published ? <GreenCheckmark /> : <RedBan />}
-                    <div className="dropdown">
-                      <button
-                        className="btn dropdown-toggle"
-                        type="button"
-                        id={`quizMenuButton-${quiz._id}`}
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <IoEllipsisVertical style={{ fontSize: "20px" }} />
-                      </button>
-                      <ul
-                        className="dropdown-menu"
-                        aria-labelledby={`quizMenuButton-${quiz._id}`}
-                      >
-                        <li>
-                          <button
-                            className="dropdown-item"
-                            onClick={() => handleEdit(quiz._id)}
-                          >
-                            Edit
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            className="dropdown-item"
-                            onClick={() => handleDelete(quiz._id)}
-                          >
-                            Delete
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            className="dropdown-item"
-                            onClick={() =>
-                              togglePublishStatus(quiz._id, quiz.published)
-                            }
-                          >
-                            Publish/Unpublish
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
+            {filteredQuizzes.map((quiz: any) => {
+              const studentScore = scores.find(
+                (score: any) => score.quiz === quiz._id
+              );
+
+              return (
+                <li
+                  key={quiz._id}
+                  className="wd-lesson list-group-item d-flex align-items-center p-3"
+                >
+                  <div className="icon-container me-2">
+                    <IoRocketOutline className="text-success fs-3" />
                   </div>
-                )}
-              </li>
-            ))}
+                  <div className="quiz-details flex-grow-1">
+                    <strong>
+                      <Link
+                        to={`/Kanbas/Courses/${cid}/Quizzes/Details/${quiz._id}`}
+                        className="wd-_id"
+                      >
+                        {quiz.title}
+                      </Link>
+                    </strong>
+                    <h6>
+                      <p className="wd-fg-color-red">
+                        <span className="wd-fg-color-black">
+                          {new Date() < new Date(quiz.availableDate) ? (
+                            <>
+                              <strong>Not available until</strong>{" "}
+                              {new Date(
+                                quiz.availableDate
+                              ).toLocaleDateString()}
+                            </>
+                          ) : new Date() > new Date(quiz.untilDate) ? (
+                            <>Closed</>
+                          ) : (
+                            <>Available</>
+                          )}{" "}
+                          | <b>Due</b> {quiz.dueDate || "No Due Date"} |{" "}
+                          {quiz.points || 0} pts | {quiz.questions?.length}{" "}
+                          Questions
+                          {isStudent && studentScore && (
+                            <> | Score: {studentScore.score}</>
+                          )}
+                        </span>
+                      </p>
+                    </h6>
+                  </div>
+                  {isFaculty && (
+                    <div className="d-flex align-items-center">
+                      {quiz.published ? <GreenCheckmark /> : <RedBan />}
+                      <div className="dropdown">
+                        <button
+                          className="btn dropdown-toggle"
+                          type="button"
+                          id={`quizMenuButton-${quiz._id}`}
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                        >
+                          <IoEllipsisVertical style={{ fontSize: "20px" }} />
+                        </button>
+                        <ul
+                          className="dropdown-menu"
+                          aria-labelledby={`quizMenuButton-${quiz._id}`}
+                        >
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => handleEdit(quiz._id)}
+                            >
+                              Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => handleDelete(quiz._id)}
+                            >
+                              Delete
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() =>
+                                togglePublishStatus(quiz._id, quiz.published)
+                              }
+                            >
+                              Publish/Unpublish
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </li>
       </ul>

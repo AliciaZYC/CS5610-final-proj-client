@@ -10,9 +10,15 @@ interface QuestionProps {
   };
   answer: any;
   onChange: (answer: any) => void;
+  isFaculty: boolean;
 }
 
-function TrueFalseQuestion({ question, answer, onChange }: QuestionProps) {
+function TrueFalseQuestion({
+  question,
+  answer,
+  onChange,
+  isFaculty,
+}: QuestionProps) {
   return (
     <div style={styles.container}>
       <h4 style={styles.title}>{question.title}</h4>
@@ -24,7 +30,9 @@ function TrueFalseQuestion({ question, answer, onChange }: QuestionProps) {
               type="radio"
               id={`true-${question.id}`}
               name={`question-${question.id}`}
-              checked={question.isTrue}
+              // checked={question.isTrue}
+              checked={isFaculty ? question.isTrue === true : answer === true}
+              disabled={isFaculty}
               onChange={() => onChange(true)}
               style={styles.radioInput}
             />
@@ -35,7 +43,9 @@ function TrueFalseQuestion({ question, answer, onChange }: QuestionProps) {
               type="radio"
               id={`false-${question.id}`}
               name={`question-${question.id}`}
-              checked={!question.isTrue}
+              // checked={!question.isTrue}
+              checked={isFaculty ? question.isTrue === false : answer === false}
+              disabled={isFaculty}
               onChange={() => onChange(false)}
               style={styles.radioInput}
             />

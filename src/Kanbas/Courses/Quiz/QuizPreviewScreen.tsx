@@ -92,6 +92,7 @@ function QuizPreviewScreen() {
               onChange={(answer: any) =>
                 handleAnswerChange(question.id, answer)
               }
+              isFaculty
             />
           )
         );

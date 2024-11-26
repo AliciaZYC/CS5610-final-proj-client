@@ -123,6 +123,7 @@ export default function QuestionEditor({ quiz, setQuiz }: QuestionEditorProps) {
                     question={question}
                     answer={null} // or any default value
                     onChange={() => {}} // No action needed
+                    isFaculty
                   />
                   {/* Edit and Delete Buttons */}
                   <button

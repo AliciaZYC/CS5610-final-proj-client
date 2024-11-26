@@ -9,9 +9,15 @@ interface QuestionProps {
   };
   answer: any;
   onChange: (answer: any) => void;
+  isFaculty: boolean;
 }
 
-function MultipleChoiceQuestion({ question, answer, onChange }: QuestionProps) {
+function MultipleChoiceQuestion({
+  question,
+  answer,
+  onChange,
+  isFaculty,
+}: QuestionProps) {
   return (
     <div style={styles.container}>
       <h4 style={styles.title}>{question.title}</h4>
@@ -24,7 +30,8 @@ function MultipleChoiceQuestion({ question, answer, onChange }: QuestionProps) {
                 type="radio"
                 name={`question-${question.id}`}
                 id={`choice-${index}`}
-                checked={choice.isCorrect}
+                checked={isFaculty ? choice.isCorrect : answer === choice.text}
+                disabled={isFaculty}
                 onChange={() => onChange(choice.text)}
                 style={styles.radioInput}
               />

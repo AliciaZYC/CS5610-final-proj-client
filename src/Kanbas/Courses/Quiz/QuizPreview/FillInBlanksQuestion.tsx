@@ -10,9 +10,15 @@ interface QuestionProps {
   };
   answer: any;
   onChange: (answer: any) => void;
+  isFaculty: boolean;
 }
 
-function FillInBlanksQuestion({ question, answer, onChange }: QuestionProps) {
+function FillInBlanksQuestion({
+  question,
+  answer,
+  onChange,
+  isFaculty,
+}: QuestionProps) {
   return (
     <div style={styles.container}>
       <h4 style={styles.title}>{question.title}</h4>
@@ -23,10 +29,13 @@ function FillInBlanksQuestion({ question, answer, onChange }: QuestionProps) {
             <div key={index} style={styles.inputContainer}>
               <input
                 type="text"
-                value={answer || ""}
+                // value={answer || ""}
+                value={isFaculty ? _.text || "" : answer || ""}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder={_.text}
+                // placeholder={_.text}
+                placeholder="Type your answer"
                 style={styles.input}
+                disabled={isFaculty}
               />
             </div>
           ))}
